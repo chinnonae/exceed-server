@@ -9,6 +9,8 @@
   "author": "Chinthiti Wisetsombat",
   "license": "ISC",
   "dependencies": {
+    "angular": "^1.5.8",
+    "bootstrap": "^3.3.7",
     "express": "^4.14.0",
     "redis": "^2.6.2"
   },
