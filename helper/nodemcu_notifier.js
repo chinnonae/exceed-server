@@ -13,7 +13,7 @@ function buildURL(ip, param) {
 /**
  * notify - notify change to nodemcu by sending http GET request to a server on nodemcu.
  * @param  {String} url - url for sending notification [expected to be a url from buildURL()]
- * @param  {Function} callback - a callback with 2 argument (err)
+ * @param  {Function} callback - a callback with 2 argument (err, res)
  */
 function notify(url, callback) {
   http.get(url, res => {

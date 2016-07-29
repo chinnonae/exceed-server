@@ -1,14 +1,17 @@
 const express = require('express');
 const cluster = require('cluster');
+const os = require('os');
+const rootRouter = require('./routes');
 
 class Server {
 
   constructor() {
     this.app = express();
+    this.app.use('/', rootRouter);
   }
 
   startServer(port, callback = defaultListenCallback(port)) {
-    return this.app.listen(port, callback);
+    return this.app.listen(port, getHostname(), callback);
   }
 
 }
@@ -23,9 +26,23 @@ function defaultListenCallback(port) {
     if (error) {
       console.error(`Error while trying to start the server\n${error}`);
     } else {
-      console.log(`Server is runnig on port ${port}`);
+      console.log(`Server is runnig on port ${port}@${getHostname()}`);
     }
   };
+}
+
+/**
+ * getHostname - Hostname for expressApp#listen
+ * @return {String} - IPv4 address
+ */
+function getHostname() {
+  let interfaces = os.networkInterfaces();
+  for (let key of Object.keys(interfaces)) {
+    for (let ip of interfaces[key]) {
+      if (ip.family === 'IPv4' && ip.internal === false)
+        return ip.address;
+    }
+  }
 }
 
 if (cluster.isMaster) {
