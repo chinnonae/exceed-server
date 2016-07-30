@@ -3,11 +3,11 @@ const http = require('http');
 /**
  * buildURL - url builder for sending notification to nodemcu.
  * @param  {String} ip - IP address of nodemcu.
- * @param  {undefined} param - parameter for notification.
+ * @param  {String} value - changed data.
  * @return {String} - URL for sending a request.
  */
-function buildURL(ip, param) {
-  return `http://${ip}/`;
+function buildURL(ip, value) {
+  return `http://${ip}/${value}`;
 }
 
 /**
