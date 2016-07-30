@@ -81,7 +81,7 @@ root.get('/:group/:value', (req, res, next) => {
         }
 
         res.send('Success');
-        if (group.nodeIP) {
+        if (group.nodeIP && group.nodeIP !== toIPv4(req.ip)) {
           console.log(group.nodeIP);
           nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), (err, res) => {
             console.error(err);
