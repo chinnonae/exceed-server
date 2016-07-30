@@ -3,10 +3,9 @@ const cache = require('./cache');
 
 class Group {
 
-  constructor(groupName, groupHash = {}, nodeIP = '') {
+  constructor(groupName, groupHash = {}) {
     this.name = groupName;
     this.hash = groupHash;
-    this.nodeIP = nodeIP;
   }
 
   static find(groupName, callback) {
@@ -21,15 +20,9 @@ class Group {
       redis.hgetall(groupName, (err, hash) => {
         if (err) return callback(err);
 
-        redis.hget('group-node', groupName, (err, ip) => {
-          if (err) return callback(err);
-          let newGroup = new Group(
-            groupName,
-            hash || undefined,
-            ip || undefined);
-          cache.cacheGroup(newGroup);
-          callback(null, newGroup);
-        });
+        let newGroup = new Group(groupName, hash || undefined);
+        cache.cacheGroup(newGroup);
+        callback(null, newGroup);
       });
     });
   }
@@ -43,6 +36,10 @@ class Group {
 
   getValue(key) {
     return this.hash[key];
+  }
+
+  get nodeIP() {
+    return this.hash['node-ip'];
   }
 
 }
