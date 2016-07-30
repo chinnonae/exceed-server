@@ -56,7 +56,11 @@ root.get('/:group', (req, res, next) => {
       return res.status(500).send('Please call staff');
     }
 
-    res.send(group.getValue('value'));
+    if (!group) {
+      return res.send("Group is not exist, /group/'group name' to create one.");
+    }
+
+    return res.send(group.getValue('value'));
   });
 });
 
