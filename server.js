@@ -7,11 +7,15 @@ class Server {
 
   constructor() {
     this.app = express();
+    this.app.use('/', (req, res, next) => {
+      console.log(req.url);
+      next();
+    });
     this.app.use('/', rootRouter);
   }
 
   startServer(port, callback = defaultListenCallback(port)) {
-    return this.app.listen(port, getHostname(), callback);
+    return this.app.listen(port, callback);
   }
 
 }

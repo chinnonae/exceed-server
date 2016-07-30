@@ -1,4 +1,6 @@
 const express = require('express');
+const net = require('net');
+
 const api = require('./api');
 const redis = require('../helper/redis_client');
 const Group = require('../models/group');
@@ -10,13 +12,13 @@ root.use('/api', api);
 root.get('/group/:group_name', (req, res, next) => {
   let groupName = req.params.group_name;
 
-  if (groupName === 'groups' || groupName === 'group-node')
+  if (groupName === 'groups')
     return res.send(`'${groupName}' has been used.`);
 
   redis.sadd('groups', groupName, (err, reply) => {
     if (err) {
       console.error(`/group/${groupName}\n${err}`);
-      return res.status(400).send('Please call staff');
+      return res.status(500).send('Please call staff');
     }
     if (reply <= 0) {
       return res.send(`'${groupName}' has been used.`);
@@ -30,14 +32,14 @@ root.get('/:group/register', (req, res, next) => {
   Group.find(groupName, (err, group) => {
     if (err) {
       console.error(`/${groupName}/register\n${err}`);
-      return res.status(400).send('Please call staff');
+      return res.status(500).send('Please call staff');
     }
 
     if (group) {
-      return redis.hmset('group-node', groupName, req.ip, err => {
+      return group.setValue('node-ip', toIPv4(req.ip), (err, replies) => {
         if (err) {
-          console.err(err);
-          return res.send('Failed');
+          console.error(err);
+          return res.status(500).send('Please call staff');
         }
         return res.send('Success');
       });
@@ -46,44 +48,60 @@ root.get('/:group/register', (req, res, next) => {
   });
 });
 
-root.get('/:group/:key', (req, res, next) => {
+root.get('/:group', (req, res, next) => {
   let groupName = req.params.group;
-  let key = req.params.key;
   Group.find(groupName, (err, group) => {
     if (err) {
-      console.error(`/${groupName}/${key}\n${err}`);
-      return res.status(400).send('Please call staff');
+      console.error(`/${groupName}\n${err}`);
+      return res.status(500).send('Please call staff');
     }
 
-    res.send(group.getValue(key));
+    res.send(group.getValue('value'));
   });
 });
 
-root.get('/:group/:key/:value', (req, res, next) => {
+root.get('/:group/:value', (req, res, next) => {
   let groupName = req.params.group;
-  let key = req.params.key;
   let value = req.params.value;
   Group.find(groupName, (err, group) => {
     if (err) {
-      console.error(`/${groupName}/${key}/${value}\n${err}`);
-      return res.status(400).send('Please call staff');
+      console.error(`/${groupName}/${value}\n${err}`);
+      return res.status(500).send('Please call staff');
     }
 
-    group.setValue(key, value, (err, reply) => {
-      if (err) {
-        console.error(`/${groupName}/${key}/${value}\n${err}`);
-        return res.status(400).send('Failed');
-      }
+    if (group) {
+      group.setValue('value', value, (err, reply) => {
+        if (err) {
+          console.error(`/${groupName}/${value}\n${err}`);
+          return res.status(500).send('Failed');
+        }
 
-      res.send('Success');
-      if (group.nodeIP) {
-        nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP), (err, res) => {
-          console.error(err);
-          console.log(res);
-        });
-      }
-    });
+        res.send('Success');
+        if (group.nodeIP) {
+          console.log(group.nodeIP);
+          nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), (err, res) => {
+            console.error(err);
+          });
+        }
+      });
+    }
   });
 });
+
+/**
+ * IPv4 - Parse IPv6 to IPv4
+ * @param  {String} ip - IP in String
+ * @return {Stirng} - IPv4 if @param[ip] can be parse to IPv4.
+ */
+function toIPv4(ip) {
+  if (!net.isIP(ip)) return undefined;
+  if (net.isIPv4(ip)) return ip;
+
+  let ipv4 = ip.split(':').reverse()[0];
+  if (!net.isIPv4(ipv4)) {
+    return undefined;
+  }
+  return ipv4;
+}
 
 module.exports = root;
