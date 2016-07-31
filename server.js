@@ -11,7 +11,7 @@ class Server {
   }
 
   startServer(port, callback = defaultListenCallback(port)) {
-    return this.app.listen(port, getHostname(), callback);
+    return this.app.listen(port, callback);
   }
 
 }
