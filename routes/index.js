@@ -38,7 +38,7 @@ root.get('/:group/register', (req, res, next) => {
     if (group) {
       return group.setValue('node-ip', toIPv4(req.ip), (err, replies) => {
         if (err) {
-          console.error(err);
+          console.error(`${req.url}\n${err}`);
           return res.status(500).send('Please call staff');
         }
         return res.send('Success');
@@ -78,7 +78,7 @@ root.get('/:group/:value', (req, res, next) => {
         group.setValue('value', value, (err, reply) => {
           if (err) {
             console.error(`/${groupName}/${value}\n${err}`);
-            return res.status(500).send('Failed');
+            return res.status(500).send('Please call staff.');
           }
         });
         return res.send('Success');
@@ -94,6 +94,52 @@ root.get('/:group/:value', (req, res, next) => {
       } else {
         return res.send('Failed. NodeMCU is not registered.');
       }
+    }
+  });
+});
+
+root.get('/:group/:value/set', (req, res, next) => {
+  let groupName = req.params.group;
+  let value = req.params.value;
+  Group.find(groupName, (err, group) => {
+    if (err) {
+      console.error(`${req.url}\n${err}`);
+      return res.status(500).send('Please call staff.');
+    }
+    if (!group) return res.send(`Group '${groupName}' is not found. You have to create it first.`);
+
+    group.setValue('value', value, (err, reply) => {
+      if (err) {
+        console.error(`${req.url}\n${err}`);
+        return res.status(500).send('Please call staff.');
+      }
+      return res.send('Success');
+    });
+  });
+});
+
+root.get('/:group/:value/notify_nodeMCU', (req, res, next) => {
+  let groupName = req.params.group;
+  let value = req.params.value;
+  Group.find(groupName, (err, group) => {
+    if (err) {
+      console.error(`${req.url}\n${err}`);
+      return res.status(500).send('Please call staff.');
+    }
+    if (!group) return res.send(`Group '${groupName}' is not found. You have to create it first.`);
+
+    if (group.nodeIP) {
+      if (toIPv4(req.ip) === group.nodeIP) return res.send('Cannot notify self.');
+
+      return nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), err => {
+        if (err) {
+          console.error(`${req.url}\n${err}`);
+          return res.send('Failed to notify nodeMCU.');
+        }
+        return res.send('Successfully notify nodeMCU.');
+      });
+    } else {
+      return res.send('nodeMCU is not registered to the server.');
     }
   });
 });
