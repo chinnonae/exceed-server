@@ -36,23 +36,9 @@ function defaultListenCallback(port) {
     if (error) {
       console.error(`Error while trying to start the server\n${error}`);
     } else {
-      console.log(`Server is runnig on port ${port}@${getHostname()}`);
+      console.log(`Server is runnig on port ${port}`);
     }
   };
-}
-
-/**
- * getHostname - Hostname for expressApp#listen
- * @return {String} - IPv4 address
- */
-function getHostname() {
-  let interfaces = os.networkInterfaces();
-  for (let key of Object.keys(interfaces)) {
-    for (let ip of interfaces[key]) {
-      if (ip.family === 'IPv4' && ip.internal === false)
-        return ip.address;
-    }
-  }
 }
 
 if (cluster.isMaster) {
