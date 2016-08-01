@@ -74,20 +74,26 @@ root.get('/:group/:value', (req, res, next) => {
     }
 
     if (group) {
-      group.setValue('value', value, (err, reply) => {
-        if (err) {
-          console.error(`/${groupName}/${value}\n${err}`);
-          return res.status(500).send('Failed');
-        }
-
-        res.send('Success');
-        if (group.nodeIP && group.nodeIP !== toIPv4(req.ip)) {
-          console.log(group.nodeIP);
-          nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), (err, res) => {
+      if (toIPv4(req.ip) === group.nodeIP) {
+        group.setValue('value', value, (err, reply) => {
+          if (err) {
+            console.error(`/${groupName}/${value}\n${err}`);
+            return res.status(500).send('Failed');
+          }
+        });
+        return res.send('Success');
+      } else if (group.nodeIP && group.nodeIP !== toIPv4(req.ip)) {
+        console.log(group.nodeIP);
+        nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), err => {
+          if (err) {
             console.error(err);
-          });
-        }
-      });
+            return res.send('Failed');
+          }
+          return res.send('Success');
+        });
+      } else {
+        return res.send('Failed. NodeMCU is not registered.');
+      }
     }
   });
 });
