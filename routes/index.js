@@ -87,9 +87,9 @@ root.get('/:group/:value', (req, res, next) => {
         nodemcuNotifier.notify(nodemcuNotifier.buildURL(group.nodeIP, value), err => {
           if (err) {
             console.error(err);
-            return res.send('Failed');
+            return res.send('Failed to notify nodeMCU.');
           }
-          return res.send('Success');
+          return res.send('Successfully notify nodeMCU.');
         });
       } else {
         return res.send('Failed. NodeMCU is not registered.');
