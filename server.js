@@ -14,7 +14,7 @@ class Server {
       next();
     });
     this.app.use('/', (req, res, next) => {
-      console.log(req.url);
+      console.log(process.pid + req.url);
       next();
     });
     this.app.use('/', rootRouter);
@@ -36,13 +36,10 @@ function defaultListenCallback(port) {
     if (error) {
       console.error(`Error while trying to start the server\n${error}`);
     } else {
+      if (cluster.isWorker) console.log(`Process id: ${process.pid}`);
       console.log(`Server is runnig on port ${port}`);
     }
   };
 }
 
-if (cluster.isMaster) {
-  new Server().startServer(8080);
-} else {
-  module.exports = Server;
-}
+module.exports = Server;
