@@ -1,5 +1,5 @@
 const cluster = require('cluster');
-const Server = require('./server.js');
+const Server = require('./app.js');
 const os = require('os');
 
 const spawnWorker = process.argv[2] == 'true';
