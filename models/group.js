@@ -36,7 +36,6 @@ class Group {
   }
 
   getValue(key) {
-    console.log(cache.getGroup(this.name));
     return this.hash[key];
   }
 
