@@ -23,6 +23,7 @@ class Group {
         let newGroup = new Group(groupName, hash || undefined);
         cache.cacheGroup(newGroup);
         callback(null, newGroup);
+        cache.deleteGroup(groupName);
       });
     });
   }
@@ -35,6 +36,7 @@ class Group {
   }
 
   getValue(key) {
+    console.log(cache.getGroup(this.name));
     return this.hash[key];
   }
 
